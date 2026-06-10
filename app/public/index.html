@@ -3,74 +3,87 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Terraform Lab App</title>
+  <title>Scriptoria — Notes</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <main class="page">
-    <section class="hero">
-      <p class="eyebrow">AWS Terraform Lab</p>
-      <h1>Simple frontend + Express backend</h1>
+    <section class="hero vellum">
+      <p class="eyebrow">Scriptoria</p>
+      <h1>A small ledger for passing thoughts</h1>
       <p class="lead">
-        Frontend served by Express. Data loaded from backend API through same public ALB endpoint.
+        Keep brief notes in one shared scribe’s chamber. The ink lives on the backend for now;
+        the shelves may become proper archives later.
       </p>
+      <button id="debug-toggle" class="ghost-button" type="button" aria-expanded="false">
+        Inspect the hall
+      </button>
     </section>
 
-    <section class="card-grid">
-      <article class="card">
-        <h2>App status</h2>
-        <p id="status">Loading backend response...</p>
-      </article>
-
-      <article class="card">
-        <h2>Request path</h2>
-        <p id="request-path">Waiting for API data...</p>
-      </article>
-
-      <article class="card">
-        <h2>Runtime details</h2>
-        <dl class="details">
-          <div>
-            <dt>Project</dt>
-            <dd id="project-name">-</dd>
-          </div>
-          <div>
-            <dt>Environment</dt>
-            <dd id="environment">-</dd>
-          </div>
-          <div>
-            <dt>NodePort</dt>
-            <dd id="node-port">-</dd>
-          </div>
-          <div>
-            <dt>Backend time</dt>
-            <dd id="timestamp">-</dd>
-          </div>
-        </dl>
-      </article>
-
-      <article class="card">
-        <h2>CI/CD demo toys</h2>
-        <ul class="toy-list">
-          <li><code>npm test</code> checks API and frontend response.</li>
-          <li><code>npm run build</code> creates demo build artifacts in <code>dist/</code>.</li>
-          <li><code>/api/log-demo</code> generates log lines for observability demo.</li>
-          <li>Terraform deploy still publishes app through ALB.</li>
-        </ul>
-      </article>
+    <section class="composer vellum" aria-labelledby="composer-title">
+      <h2 id="composer-title">Add a note</h2>
+      <form id="note-form" class="note-form">
+        <label class="sr-only" for="note-text">Note text</label>
+        <textarea id="note-text" name="text" rows="4" maxlength="1000" placeholder="Write your thought..." required></textarea>
+        <div class="composer-actions">
+          <p id="note-hint" class="hint">Shared backend store. Refresh safe until the server restarts.</p>
+          <button type="submit">Seal note</button>
+        </div>
+      </form>
+      <p id="form-status" class="status" aria-live="polite"></p>
     </section>
 
-    <section class="card api-card">
-      <h2>Manual demo endpoints</h2>
-      <ul class="toy-list">
-        <li><code>/api/health</code></li>
-        <li><code>/api/message</code></li>
-        <li><code>/api/log-demo</code></li>
-      </ul>
-      <p id="log-demo-status">Log demo endpoint not called yet.</p>
-      <button id="log-demo-button" type="button">Generate demo log</button>
+    <section class="notes-section vellum" aria-labelledby="notes-title">
+      <div class="section-header">
+        <h2 id="notes-title">Current notes</h2>
+        <span id="note-count" class="pill">0</span>
+      </div>
+      <p id="empty-state" class="empty-state">No notes yet. The ledger awaits the first line.</p>
+      <ul id="notes-list" class="notes-list" aria-live="polite"></ul>
+    </section>
+
+    <section id="debug-panel" class="debug-panel vellum" hidden aria-labelledby="debug-title">
+      <div class="section-header">
+        <h2 id="debug-title">Hall ledger</h2>
+        <span class="pill subtle">infra</span>
+      </div>
+      <dl class="details">
+        <div>
+          <dt>Project</dt>
+          <dd id="debug-project">-</dd>
+        </div>
+        <div>
+          <dt>Environment</dt>
+          <dd id="debug-environment">-</dd>
+        </div>
+        <div>
+          <dt>NodePort</dt>
+          <dd id="debug-node-port">-</dd>
+        </div>
+        <div>
+          <dt>Route</dt>
+          <dd id="debug-request-path">-</dd>
+        </div>
+        <div>
+          <dt>Timestamp</dt>
+          <dd id="debug-timestamp">-</dd>
+        </div>
+      </dl>
     </section>
   </main>
+
+  <template id="note-template">
+    <li class="note-card">
+      <article>
+        <div class="note-meta">
+          <span class="note-crest">✦</span>
+          <time class="note-time"></time>
+        </div>
+        <p class="note-text"></p>
+        <button class="note-delete" type="button">Burn</button>
+      </article>
+    </li>
+  </template>
 
   <script src="/app.js" defer></script>
 </body>

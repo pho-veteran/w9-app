@@ -1,53 +1,141 @@
-async function loadMessage() {
-  const statusEl = document.getElementById("status");
-  const requestPathEl = document.getElementById("request-path");
-  const projectNameEl = document.getElementById("project-name");
-  const environmentEl = document.getElementById("environment");
-  const nodePortEl = document.getElementById("node-port");
-  const timestampEl = document.getElementById("timestamp");
+const notesListEl = document.getElementById("notes-list");
+const emptyStateEl = document.getElementById("empty-state");
+const noteCountEl = document.getElementById("note-count");
+const noteFormEl = document.getElementById("note-form");
+const noteTextEl = document.getElementById("note-text");
+const formStatusEl = document.getElementById("form-status");
+const noteTemplate = document.getElementById("note-template");
+const debugToggleEl = document.getElementById("debug-toggle");
+const debugPanelEl = document.getElementById("debug-panel");
 
-  try {
-    const response = await fetch("/api/message");
+let notes = [];
+let debugLoaded = false;
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
+function setStatus(message, tone = "neutral") {
+  formStatusEl.textContent = message;
+  formStatusEl.dataset.tone = tone;
+}
 
-    const payload = await response.json();
+function formatTime(value) {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short"
+  }).format(new Date(value));
+}
 
-    statusEl.textContent = payload.message;
-    requestPathEl.textContent = payload.requestPath;
-    projectNameEl.textContent = payload.projectName;
-    environmentEl.textContent = payload.environment;
-    nodePortEl.textContent = payload.nodePort;
-    timestampEl.textContent = payload.timestamp;
-  } catch (error) {
-    statusEl.textContent = `Backend request failed: ${error.message}`;
-    requestPathEl.textContent = "Check Express container logs and ALB target health.";
+function renderNotes() {
+  notesListEl.textContent = "";
+  noteCountEl.textContent = String(notes.length);
+  emptyStateEl.hidden = notes.length > 0;
+
+  for (const note of notes) {
+    const item = noteTemplate.content.firstElementChild.cloneNode(true);
+    const timeEl = item.querySelector(".note-time");
+    const textEl = item.querySelector(".note-text");
+    const deleteButton = item.querySelector(".note-delete");
+
+    timeEl.dateTime = note.createdAt;
+    timeEl.textContent = formatTime(note.createdAt);
+    textEl.textContent = note.text;
+    deleteButton.addEventListener("click", () => deleteNote(note.id));
+
+    notesListEl.appendChild(item);
   }
 }
 
-async function triggerLogDemo() {
-  const statusEl = document.getElementById("log-demo-status");
+async function requestJson(url, options) {
+  const response = await fetch(url, options);
 
-  statusEl.textContent = "Calling /api/log-demo...";
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(payload.error || `HTTP ${response.status}`);
+  }
 
+  if (response.status === 204) {
+    return null;
+  }
+
+  return await response.json();
+}
+
+async function loadNotes() {
   try {
-    const response = await fetch("/api/log-demo");
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    const payload = await response.json();
-    statusEl.textContent = `${payload.detail} Status: ${payload.status}.`;
+    const payload = await requestJson("/api/notes");
+    notes = payload.notes || [];
+    renderNotes();
+    setStatus("Ledger ready.");
   } catch (error) {
-    statusEl.textContent = `Log demo failed: ${error.message}`;
+    setStatus(`Could not read the ledger: ${error.message}`, "error");
   }
 }
 
-document
-  .getElementById("log-demo-button")
-  .addEventListener("click", triggerLogDemo);
+async function addNote(event) {
+  event.preventDefault();
 
-loadMessage();
+  const text = noteTextEl.value.trim();
+
+  if (!text) {
+    setStatus("Write something before sealing the note.", "error");
+    noteTextEl.focus();
+    return;
+  }
+
+  try {
+    const payload = await requestJson("/api/notes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text })
+    });
+
+    notes = [payload.note, ...notes];
+    noteTextEl.value = "";
+    renderNotes();
+    setStatus("Note sealed.", "success");
+  } catch (error) {
+    setStatus(`The scribe refused the note: ${error.message}`, "error");
+  }
+}
+
+async function deleteNote(id) {
+  try {
+    await requestJson(`/api/notes/${encodeURIComponent(id)}`, { method: "DELETE" });
+    notes = notes.filter((note) => note.id !== id);
+    renderNotes();
+    setStatus("Note burned.", "success");
+  } catch (error) {
+    setStatus(`Could not burn the note: ${error.message}`, "error");
+  }
+}
+
+function setDebugField(id, value) {
+  document.getElementById(id).textContent = value || "-";
+}
+
+async function loadDebugInfo() {
+  const payload = await requestJson("/api/debug/infra");
+
+  setDebugField("debug-project", payload.projectName);
+  setDebugField("debug-environment", payload.environment);
+  setDebugField("debug-node-port", payload.nodePort);
+  setDebugField("debug-request-path", payload.requestPath);
+  setDebugField("debug-timestamp", payload.timestamp);
+  debugLoaded = true;
+}
+
+async function toggleDebugPanel() {
+  const shouldShow = debugPanelEl.hidden;
+  debugPanelEl.hidden = !shouldShow;
+  debugToggleEl.setAttribute("aria-expanded", String(shouldShow));
+
+  if (shouldShow && !debugLoaded) {
+    try {
+      await loadDebugInfo();
+    } catch (error) {
+      setDebugField("debug-request-path", `Debug failed: ${error.message}`);
+    }
+  }
+}
+
+noteFormEl.addEventListener("submit", addNote);
+debugToggleEl.addEventListener("click", toggleDebugPanel);
+loadNotes();
