@@ -28,6 +28,26 @@ resource "aws_security_group_rule" "alb_argocd_in" {
   cidr_blocks       = ["0.0.0.0/0"]
 }
 
+resource "aws_security_group_rule" "alb_grafana_in" {
+  type              = "ingress"
+  security_group_id = aws_security_group.alb.id
+  description       = "Grafana UI from Internet"
+  from_port         = var.grafana_alb_port
+  to_port           = var.grafana_alb_port
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+}
+
+resource "aws_security_group_rule" "alb_prometheus_in" {
+  type              = "ingress"
+  security_group_id = aws_security_group.alb.id
+  description       = "Prometheus UI from Internet"
+  from_port         = var.prometheus_alb_port
+  to_port           = var.prometheus_alb_port
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+}
+
 resource "aws_security_group_rule" "alb_to_ec2" {
   type                     = "egress"
   security_group_id        = aws_security_group.alb.id
@@ -44,6 +64,26 @@ resource "aws_security_group_rule" "alb_to_ec2_argocd" {
   description              = "Forward traffic to EC2 ArgoCD UI port"
   from_port                = var.argocd_host_port
   to_port                  = var.argocd_host_port
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.ec2.id
+}
+
+resource "aws_security_group_rule" "alb_to_ec2_grafana" {
+  type                     = "egress"
+  security_group_id        = aws_security_group.alb.id
+  description              = "Forward traffic to EC2 Grafana port"
+  from_port                = var.grafana_host_port
+  to_port                  = var.grafana_host_port
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.ec2.id
+}
+
+resource "aws_security_group_rule" "alb_to_ec2_prometheus" {
+  type                     = "egress"
+  security_group_id        = aws_security_group.alb.id
+  description              = "Forward traffic to EC2 Prometheus port"
+  from_port                = var.prometheus_host_port
+  to_port                  = var.prometheus_host_port
   protocol                 = "tcp"
   source_security_group_id = aws_security_group.ec2.id
 }
@@ -74,6 +114,26 @@ resource "aws_security_group_rule" "ec2_from_alb_argocd" {
   description              = "ArgoCD UI port from ALB"
   from_port                = var.argocd_host_port
   to_port                  = var.argocd_host_port
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.alb.id
+}
+
+resource "aws_security_group_rule" "ec2_from_alb_grafana" {
+  type                     = "ingress"
+  security_group_id        = aws_security_group.ec2.id
+  description              = "Grafana port from ALB"
+  from_port                = var.grafana_host_port
+  to_port                  = var.grafana_host_port
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.alb.id
+}
+
+resource "aws_security_group_rule" "ec2_from_alb_prometheus" {
+  type                     = "ingress"
+  security_group_id        = aws_security_group.ec2.id
+  description              = "Prometheus port from ALB"
+  from_port                = var.prometheus_host_port
+  to_port                  = var.prometheus_host_port
   protocol                 = "tcp"
   source_security_group_id = aws_security_group.alb.id
 }

@@ -2,11 +2,6 @@ name: W9 App CI/CD
 
 on:
   pull_request:
-    paths:
-      - 'app/**'
-      - 'terraform/**'
-      - 'bootstrap/**'
-      - '.github/workflows/ci.yml'
   push:
     branches:
       - main
@@ -247,7 +242,8 @@ jobs:
     needs:
       - changes
       - test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.terraform == 'true'
+      - publish
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.terraform == 'true' && (needs.changes.outputs.app != 'true' || needs.publish.result == 'success')
     environment: production
     permissions:
       contents: read

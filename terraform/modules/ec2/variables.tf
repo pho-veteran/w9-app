@@ -43,6 +43,16 @@ variable "argocd_host_port" {
   type        = number
 }
 
+variable "grafana_host_port" {
+  description = "Grafana port exposed on the EC2 host."
+  type        = number
+}
+
+variable "prometheus_host_port" {
+  description = "Prometheus port exposed on the EC2 host."
+  type        = number
+}
+
 variable "kubectl_version" {
   description = "Kubectl version installed on the EC2 instance."
   type        = string

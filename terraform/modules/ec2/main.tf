@@ -60,12 +60,14 @@ resource "aws_instance" "this" {
 
   user_data_replace_on_change = true
   user_data_base64 = base64gzip(templatefile("${path.root}/user_data.sh.tftpl", {
-    gitops_repo_url  = var.gitops_repo_url
-    kubectl_version  = var.kubectl_version
-    minikube_version = var.minikube_version
-    node_port        = var.node_port
-    argocd_host_port = var.argocd_host_port
-    project_name     = var.name_prefix
+    gitops_repo_url      = var.gitops_repo_url
+    kubectl_version      = var.kubectl_version
+    minikube_version     = var.minikube_version
+    node_port            = var.node_port
+    argocd_host_port     = var.argocd_host_port
+    grafana_host_port    = var.grafana_host_port
+    prometheus_host_port = var.prometheus_host_port
+    project_name         = var.name_prefix
   }))
 
   root_block_device {

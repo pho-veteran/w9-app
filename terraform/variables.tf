@@ -91,6 +91,50 @@ variable "argocd_host_port" {
   }
 }
 
+variable "grafana_alb_port" {
+  description = "Public ALB listener port for Grafana."
+  type        = number
+  default     = 8081
+
+  validation {
+    condition     = var.grafana_alb_port >= 1 && var.grafana_alb_port <= 65535
+    error_message = "grafana_alb_port must be within 1-65535."
+  }
+}
+
+variable "grafana_host_port" {
+  description = "Host port on the EC2 instance forwarded to Grafana."
+  type        = number
+  default     = 30082
+
+  validation {
+    condition     = var.grafana_host_port >= 1 && var.grafana_host_port <= 65535
+    error_message = "grafana_host_port must be within 1-65535."
+  }
+}
+
+variable "prometheus_alb_port" {
+  description = "Public ALB listener port for Prometheus."
+  type        = number
+  default     = 8082
+
+  validation {
+    condition     = var.prometheus_alb_port >= 1 && var.prometheus_alb_port <= 65535
+    error_message = "prometheus_alb_port must be within 1-65535."
+  }
+}
+
+variable "prometheus_host_port" {
+  description = "Host port on the EC2 instance forwarded to Prometheus."
+  type        = number
+  default     = 30083
+
+  validation {
+    condition     = var.prometheus_host_port >= 1 && var.prometheus_host_port <= 65535
+    error_message = "prometheus_host_port must be within 1-65535."
+  }
+}
+
 
 variable "minikube_version" {
   description = "Minikube version to install on the EC2 instance."

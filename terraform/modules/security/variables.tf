@@ -23,6 +23,26 @@ variable "argocd_host_port" {
   type        = number
 }
 
+variable "grafana_alb_port" {
+  description = "Public ALB listener port for Grafana."
+  type        = number
+}
+
+variable "grafana_host_port" {
+  description = "Grafana port exposed from EC2 host to ALB."
+  type        = number
+}
+
+variable "prometheus_alb_port" {
+  description = "Public ALB listener port for Prometheus."
+  type        = number
+}
+
+variable "prometheus_host_port" {
+  description = "Prometheus port exposed from EC2 host to ALB."
+  type        = number
+}
+
 variable "common_tags" {
   description = "Common tags applied to all AWS resources."
   type        = map(string)
