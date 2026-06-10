@@ -64,6 +64,7 @@ resource "aws_instance" "this" {
     kubectl_version  = var.kubectl_version
     minikube_version = var.minikube_version
     node_port        = var.node_port
+    argocd_host_port = var.argocd_host_port
     project_name     = var.name_prefix
   }))
 

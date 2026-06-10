@@ -27,10 +27,12 @@ module "network" {
 module "security" {
   source = "./modules/security"
 
-  name_prefix = local.name_prefix
-  vpc_id      = module.network.vpc_id
-  node_port   = var.node_port
-  common_tags = local.common_tags
+  name_prefix      = local.name_prefix
+  vpc_id           = module.network.vpc_id
+  node_port        = var.node_port
+  argocd_alb_port  = var.argocd_alb_port
+  argocd_host_port = var.argocd_host_port
+  common_tags      = local.common_tags
 }
 
 module "ec2" {
@@ -44,6 +46,7 @@ module "ec2" {
   ami_id                = var.ami_id != "" ? var.ami_id : data.aws_ami.ubuntu[0].id
   root_volume_size      = var.root_volume_size
   node_port             = var.node_port
+  argocd_host_port      = var.argocd_host_port
   kubectl_version       = var.kubectl_version
   minikube_version      = var.minikube_version
   gitops_repo_url       = var.gitops_repo_url
@@ -64,5 +67,7 @@ module "alb" {
   alb_security_group_id = module.security.alb_security_group_id
   target_instance_id    = module.ec2.instance_id
   target_port           = var.node_port
+  argocd_alb_port       = var.argocd_alb_port
+  argocd_target_port    = var.argocd_host_port
   common_tags           = local.common_tags
 }

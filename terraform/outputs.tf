@@ -3,6 +3,11 @@ output "app_url" {
   value       = module.alb.app_url
 }
 
+output "argocd_url" {
+  description = "Public ArgoCD UI URL served by the ALB."
+  value       = module.alb.argocd_url
+}
+
 output "alb_dns_name" {
   description = "ALB DNS name."
   value       = module.alb.alb_dns_name

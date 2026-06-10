@@ -69,6 +69,28 @@ variable "node_port" {
   }
 }
 
+variable "argocd_alb_port" {
+  description = "Public ALB listener port for the ArgoCD UI."
+  type        = number
+  default     = 8080
+
+  validation {
+    condition     = var.argocd_alb_port >= 1 && var.argocd_alb_port <= 65535
+    error_message = "argocd_alb_port must be within 1-65535."
+  }
+}
+
+variable "argocd_host_port" {
+  description = "Host port on the EC2 instance forwarded to the ArgoCD server service."
+  type        = number
+  default     = 30081
+
+  validation {
+    condition     = var.argocd_host_port >= 1 && var.argocd_host_port <= 65535
+    error_message = "argocd_host_port must be within 1-65535."
+  }
+}
+
 
 variable "minikube_version" {
   description = "Minikube version to install on the EC2 instance."

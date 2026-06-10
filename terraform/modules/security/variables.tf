@@ -13,6 +13,16 @@ variable "node_port" {
   type        = number
 }
 
+variable "argocd_alb_port" {
+  description = "Public ALB listener port for the ArgoCD UI."
+  type        = number
+}
+
+variable "argocd_host_port" {
+  description = "ArgoCD UI port exposed from EC2 host to ALB."
+  type        = number
+}
+
 variable "common_tags" {
   description = "Common tags applied to all AWS resources."
   type        = map(string)

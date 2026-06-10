@@ -11,9 +11,11 @@ export DEBIAN_FRONTEND=noninteractive
 KUBECTL_VERSION="${kubectl_version}"
 MINIKUBE_VERSION="${minikube_version}"
 NODE_PORT="${node_port}"
+ARGOCD_HOST_PORT="${argocd_host_port}"
 PROJECT_NAME="${project_name}"
 REPO_DIR="/home/ubuntu/w9-gitops-repo"
 PORT_FORWARD_SERVICE="/etc/systemd/system/minikube-web-port-forward.service"
+ARGOCD_PORT_FORWARD_SERVICE="/etc/systemd/system/argocd-server-port-forward.service"
 ARGOCD_INSTALL_URL="https://raw.githubusercontent.com/argoproj/argo-cd/v2.14.9/manifests/install.yaml"
 ARGOCD_CLI_URL="https://github.com/argoproj/argo-cd/releases/download/v2.14.9/argocd-linux-amd64"
 REPO_URL="${gitops_repo_url}"
@@ -162,18 +164,54 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 
+cat > "$${ARGOCD_PORT_FORWARD_SERVICE}" <<EOF
+[Unit]
+Description=Forward host port $${ARGOCD_HOST_PORT} to ArgoCD Server inside minikube
+After=docker.service minikube-web-port-forward.service
+Requires=docker.service
+
+[Service]
+User=ubuntu
+Environment=KUBECONFIG=/home/ubuntu/.kube/config
+ExecStartPre=/bin/bash -lc 'for i in {1..60}; do /usr/local/bin/kubectl -n argocd get endpoints argocd-server -o jsonpath="{.subsets[0].addresses[0].ip}" >/dev/null 2>&1 && exit 0; sleep 5; done; exit 1'
+ExecStart=/usr/local/bin/kubectl -n argocd port-forward --address 0.0.0.0 service/argocd-server $${ARGOCD_HOST_PORT}:443
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
 systemctl daemon-reload
 systemctl enable --now minikube-web-port-forward.service
+systemctl enable --now argocd-server-port-forward.service
+
+WEB_READY=false
+ARGOCD_READY=false
 
 for attempt in $(seq 1 30); do
   if curl -fsS "http://127.0.0.1:$${NODE_PORT}/api/health" >/dev/null; then
     curl -fsS "http://127.0.0.1:$${NODE_PORT}/api/message" >/dev/null
-    exit 0
+    WEB_READY=true
+    break
   fi
   sleep 5
 done
 
-systemctl status minikube-web-port-forward.service --no-pager
+for attempt in $(seq 1 30); do
+  if curl -kfsS "https://127.0.0.1:$${ARGOCD_HOST_PORT}/" >/dev/null; then
+    ARGOCD_READY=true
+    break
+  fi
+  sleep 5
+done
+
+if [ "$${WEB_READY}" = "true" ] && [ "$${ARGOCD_READY}" = "true" ]; then
+  exit 0
+fi
+
+systemctl status minikube-web-port-forward.service --no-pager || true
+systemctl status argocd-server-port-forward.service --no-pager || true
 sudo -iu ubuntu kubectl get applications -n argocd || true
 sudo -iu ubuntu kubectl get all -n demo
 sudo -iu ubuntu kubectl logs deployment/web -n demo || true

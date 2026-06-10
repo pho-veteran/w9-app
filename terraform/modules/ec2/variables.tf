@@ -38,6 +38,11 @@ variable "node_port" {
   type        = number
 }
 
+variable "argocd_host_port" {
+  description = "ArgoCD UI port exposed on the EC2 host."
+  type        = number
+}
+
 variable "kubectl_version" {
   description = "Kubectl version installed on the EC2 instance."
   type        = string
@@ -48,19 +53,10 @@ variable "minikube_version" {
   type        = string
 }
 
-
-
 variable "gitops_repo_url" {
   description = "GitOps repository URL cloned by EC2 user-data for ArgoCD bootstrap."
   type        = string
 }
-
-
-
-
-
-
-
 
 variable "private_key_path" {
   description = "Local path used by local provider to persist the generated SSH private key."

@@ -18,12 +18,32 @@ resource "aws_security_group_rule" "alb_http_in" {
   cidr_blocks       = ["0.0.0.0/0"]
 }
 
+resource "aws_security_group_rule" "alb_argocd_in" {
+  type              = "ingress"
+  security_group_id = aws_security_group.alb.id
+  description       = "ArgoCD UI from Internet"
+  from_port         = var.argocd_alb_port
+  to_port           = var.argocd_alb_port
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+}
+
 resource "aws_security_group_rule" "alb_to_ec2" {
   type                     = "egress"
   security_group_id        = aws_security_group.alb.id
   description              = "Forward traffic to EC2 application port"
   from_port                = var.node_port
   to_port                  = var.node_port
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.ec2.id
+}
+
+resource "aws_security_group_rule" "alb_to_ec2_argocd" {
+  type                     = "egress"
+  security_group_id        = aws_security_group.alb.id
+  description              = "Forward traffic to EC2 ArgoCD UI port"
+  from_port                = var.argocd_host_port
+  to_port                  = var.argocd_host_port
   protocol                 = "tcp"
   source_security_group_id = aws_security_group.ec2.id
 }
@@ -44,6 +64,16 @@ resource "aws_security_group_rule" "ec2_from_alb" {
   description              = "Application port from ALB"
   from_port                = var.node_port
   to_port                  = var.node_port
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.alb.id
+}
+
+resource "aws_security_group_rule" "ec2_from_alb_argocd" {
+  type                     = "ingress"
+  security_group_id        = aws_security_group.ec2.id
+  description              = "ArgoCD UI port from ALB"
+  from_port                = var.argocd_host_port
+  to_port                  = var.argocd_host_port
   protocol                 = "tcp"
   source_security_group_id = aws_security_group.alb.id
 }
