@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Terraform Lab App</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <p class="eyebrow">AWS Terraform Lab</p>
+      <h1>Simple frontend + Express backend</h1>
+      <p class="lead">
+        Frontend served by Express. Data loaded from backend API through same public ALB endpoint.
+      </p>
+    </section>
+
+    <section class="card-grid">
+      <article class="card">
+        <h2>App status</h2>
+        <p id="status">Loading backend response...</p>
+      </article>
+
+      <article class="card">
+        <h2>Request path</h2>
+        <p id="request-path">Waiting for API data...</p>
+      </article>
+
+      <article class="card">
+        <h2>Runtime details</h2>
+        <dl class="details">
+          <div>
+            <dt>Project</dt>
+            <dd id="project-name">-</dd>
+          </div>
+          <div>
+            <dt>Environment</dt>
+            <dd id="environment">-</dd>
+          </div>
+          <div>
+            <dt>NodePort</dt>
+            <dd id="node-port">-</dd>
+          </div>
+          <div>
+            <dt>Backend time</dt>
+            <dd id="timestamp">-</dd>
+          </div>
+        </dl>
+      </article>
+
+      <article class="card">
+        <h2>CI/CD demo toys</h2>
+        <ul class="toy-list">
+          <li><code>npm test</code> checks API and frontend response.</li>
+          <li><code>npm run build</code> creates demo build artifacts in <code>dist/</code>.</li>
+          <li><code>/api/log-demo</code> generates log lines for observability demo.</li>
+          <li>Terraform deploy still publishes app through ALB.</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="card api-card">
+      <h2>Manual demo endpoints</h2>
+      <ul class="toy-list">
+        <li><code>/api/health</code></li>
+        <li><code>/api/message</code></li>
+        <li><code>/api/log-demo</code></li>
+      </ul>
+      <p id="log-demo-status">Log demo endpoint not called yet.</p>
+      <button id="log-demo-button" type="button">Generate demo log</button>
+    </section>
+  </main>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
