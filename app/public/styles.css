@@ -319,3 +319,23 @@ textarea::placeholder {
   padding-top: 18px;
   border-top: 1px solid rgba(104, 65, 31, 0.14);
 }
+
+.chaos-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.chaos-row select {
+  flex: 1;
+  min-width: 0;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(104, 65, 31, 0.35);
+  border-radius: 8px;
+  background: #f9f0dc;
+  color: var(--muted-ink);
+  font-size: 0.875rem;
+  font-family: inherit;
+  cursor: pointer;
+}

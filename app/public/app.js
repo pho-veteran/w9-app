@@ -8,6 +8,7 @@ const noteTemplate = document.getElementById("note-template");
 const debugToggleEl = document.getElementById("debug-toggle");
 const debugPanelEl = document.getElementById("debug-panel");
 const fireAlertBtnEl = document.getElementById("fire-alert-btn");
+const injectCountEl = document.getElementById("inject-count");
 
 let notes = [];
 let debugLoaded = false;
@@ -138,10 +139,15 @@ async function toggleDebugPanel() {
 }
 
 async function fireAlert() {
+  const count = Number(injectCountEl.value);
   fireAlertBtnEl.disabled = true;
   setDebugField("debug-alert-status", "Injecting errors…");
   try {
-    const payload = await requestJson("/api/debug/inject-errors", { method: "POST" });
+    const payload = await requestJson("/api/debug/inject-errors", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ count })
+    });
     setDebugField("debug-alert-status", `${payload.injected} errors injected — alert fires in ${payload.eta}`);
   } catch (error) {
     setDebugField("debug-alert-status", `Failed: ${error.message}`);

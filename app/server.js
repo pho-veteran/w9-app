@@ -176,8 +176,8 @@ function createApp(options = {}) {
     res.end(await metrics.registry.metrics());
   });
 
-  app.post("/api/debug/inject-errors", (_req, res) => {
-    const count = 2000;
+  app.post("/api/debug/inject-errors", (req, res) => {
+    const count = Math.min(Math.max(Number(req.body?.count) || 50, 1), 5000);
     metrics.requestCounter.inc({ method: "GET", route: "/api/notes", status_code: "500" }, count);
     res.json({ injected: count, eta: "~3 minutes" });
   });

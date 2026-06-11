@@ -70,7 +70,15 @@
         </div>
       </dl>
       <div class="debug-chaos">
-        <button id="fire-alert-btn" type="button">Trigger alert</button>
+        <div class="chaos-row">
+          <select id="inject-count">
+            <option value="5">5 errors — 5m: ~23% · 1h: ~4%</option>
+            <option value="50" selected>50 errors — 5m: ~75% · 1h: ~30%</option>
+            <option value="100">100 errors — 5m: ~85% · 1h: ~47%</option>
+            <option value="2000">2000 errors — 5m: ~99% · 1h: ~95%</option>
+          </select>
+          <button id="fire-alert-btn" type="button">Trigger alert</button>
+        </div>
         <p id="debug-alert-status" class="status" aria-live="polite"></p>
       </div>
     </section>
