@@ -131,6 +131,19 @@ test("DELETE /api/notes/:id removes a note", async () => {
   });
 });
 
+test("GET /metrics returns Prometheus metrics", async () => {
+  await withServer(async (server) => {
+    await request(server, "/api/health");
+    const response = await request(server, "/metrics");
+
+    assert.equal(response.statusCode, 200);
+    assert.match(response.headers["content-type"], /text\/plain/);
+    assert.match(response.body, /process_cpu_user_seconds_total|nodejs_/);
+    assert.match(response.body, /http_requests_total/);
+    assert.match(response.body, /http_request_duration_seconds/);
+  });
+});
+
 test("GET /api/debug/infra returns deployment metadata", async () => {
   process.env.PROJECT_NAME = "ci-cd-lab";
   process.env.ENVIRONMENT = "demo";

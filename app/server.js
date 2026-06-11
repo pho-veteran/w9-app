@@ -1,5 +1,56 @@
 const express = require("express");
 const path = require("path");
+const promClient = require("prom-client");
+
+function getRouteLabel(req) {
+  if (req.route?.path) {
+    return req.route.path;
+  }
+
+  if (req.path === "/") {
+    return "*";
+  }
+
+  if (req.path.includes(".")) {
+    return "static";
+  }
+
+  return "unmatched";
+}
+
+function createMetrics() {
+  const registry = new promClient.Registry();
+
+  promClient.collectDefaultMetrics({ register: registry });
+
+  const requestCounter = new promClient.Counter({
+    name: "http_requests_total",
+    help: "Total number of HTTP requests",
+    labelNames: ["method", "route", "status_code"],
+    registers: [registry]
+  });
+
+  const requestDuration = new promClient.Histogram({
+    name: "http_request_duration_seconds",
+    help: "HTTP request duration in seconds",
+    labelNames: ["method", "route", "status_code"],
+    registers: [registry]
+  });
+
+  return {
+    registry,
+    observeRequest(req, res, durationSeconds) {
+      const labels = {
+        method: req.method,
+        route: getRouteLabel(req),
+        status_code: String(res.statusCode)
+      };
+
+      requestCounter.inc(labels);
+      requestDuration.observe(labels, durationSeconds);
+    }
+  };
+}
 
 function createNoteStore() {
   const notes = [
@@ -46,6 +97,7 @@ function createApp(options = {}) {
   const environment = process.env.ENVIRONMENT || "lab";
   const nodePort = process.env.NODE_PORT || "30080";
   const noteStore = options.noteStore || createNoteStore();
+  const metrics = createMetrics();
 
   app.use(express.json({ limit: "32kb" }));
 
@@ -57,6 +109,17 @@ function createApp(options = {}) {
       console.log(
         `[request] method=${req.method} path=${req.path} status=${res.statusCode} duration_ms=${durationMs}`
       );
+    });
+
+    next();
+  });
+
+  app.use((req, res, next) => {
+    const startedAt = process.hrtime.bigint();
+
+    res.on("finish", () => {
+      const durationSeconds = Number(process.hrtime.bigint() - startedAt) / 1e9;
+      metrics.observeRequest(req, res, durationSeconds);
     });
 
     next();
@@ -105,6 +168,11 @@ function createApp(options = {}) {
       requestPath: "Internet -> ALB -> EC2 host port -> Kubernetes Service -> Express Pod",
       timestamp: new Date().toISOString()
     });
+  });
+
+  app.get("/metrics", async (_req, res) => {
+    res.set("Content-Type", metrics.registry.contentType);
+    res.end(await metrics.registry.metrics());
   });
 
   app.get("*", (_req, res) => {
