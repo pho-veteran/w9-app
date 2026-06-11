@@ -93,6 +93,26 @@ sudo -iu ubuntu kubectl -n argocd wait --for=condition=ready pod --all --timeout
 # Bootstrap root Application từ folder GitOps trong repo clone.
 sudo -iu ubuntu kubectl apply -f "$${ROOT_APP_PATH}"
 
+# Đợi ArgoCD tạo và sync child app argo-rollouts trước khi sync workload web.
+for attempt in $(seq 1 60); do
+  if sudo -iu ubuntu kubectl -n argocd get application argo-rollouts >/dev/null 2>&1; then
+    break
+  fi
+  sleep 5
+done
+
+for attempt in $(seq 1 120); do
+  if [ "$(sudo -iu ubuntu kubectl -n argocd get application argo-rollouts -o jsonpath='{.status.sync.status}' 2>/dev/null || true)" = "Synced" ] && \
+     [ "$(sudo -iu ubuntu kubectl -n argocd get application argo-rollouts -o jsonpath='{.status.health.status}' 2>/dev/null || true)" = "Healthy" ]; then
+    break
+  fi
+  sleep 5
+done
+
+sudo -iu ubuntu kubectl wait --for=condition=Established crd/rollouts.argoproj.io --timeout=300s
+sudo -iu ubuntu kubectl wait --for=condition=Established crd/analysistemplates.argoproj.io --timeout=300s
+sudo -iu ubuntu kubectl -n argo-rollouts wait --for=condition=ready pod --all --timeout=300s
+
 # Đợi ArgoCD tạo và sync child app web trước khi rollout workload.
 for attempt in $(seq 1 60); do
   if sudo -iu ubuntu kubectl -n argocd get application web >/dev/null 2>&1; then
