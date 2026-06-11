@@ -37,7 +37,7 @@ resource "aws_lb_target_group" "app" {
 resource "aws_lb_target_group" "argocd" {
   name        = "${var.name_prefix}-argo"
   port        = var.argocd_target_port
-  protocol    = "HTTPS"
+  protocol    = "HTTP"
   target_type = "instance"
   vpc_id      = var.vpc_id
 
@@ -48,7 +48,7 @@ resource "aws_lb_target_group" "argocd" {
     matcher             = "200-399"
     path                = "/"
     port                = "traffic-port"
-    protocol            = "HTTPS"
+    protocol            = "HTTP"
     timeout             = 5
     unhealthy_threshold = 3
   }
