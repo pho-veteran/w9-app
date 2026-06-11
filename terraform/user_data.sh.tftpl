@@ -111,18 +111,18 @@ done
 
 # Đợi workload sync lên cluster rồi smoke test qua service nội bộ.
 for attempt in $(seq 1 60); do
-  if sudo -iu ubuntu kubectl get namespace demo >/dev/null 2>&1 && sudo -iu ubuntu kubectl get deployment/web -n demo >/dev/null 2>&1; then
+  if sudo -iu ubuntu kubectl get namespace demo >/dev/null 2>&1 && sudo -iu ubuntu kubectl get rollout/web -n demo >/dev/null 2>&1; then
     break
   fi
   sleep 5
 done
 
-sudo -iu ubuntu kubectl rollout status deployment/web -n demo --timeout=600s
 sudo -iu ubuntu kubectl -n demo wait --for=condition=ready pod -l app.kubernetes.io/name=web --timeout=600s
 if [ "$(sudo -iu ubuntu kubectl -n argocd get application web -o jsonpath='{.status.sync.status}' 2>/dev/null || true)" != "Synced" ] || \
    [ "$(sudo -iu ubuntu kubectl -n argocd get application web -o jsonpath='{.status.health.status}' 2>/dev/null || true)" != "Healthy" ]; then
   sudo -iu ubuntu kubectl -n argocd get applications -o wide || true
   sudo -iu ubuntu kubectl -n argocd describe application web || true
+  sudo -iu ubuntu kubectl -n demo get rollout web -o wide || true
   exit 1
 fi
 
@@ -301,5 +301,5 @@ systemctl status prometheus-port-forward.service --no-pager || true
 sudo -iu ubuntu kubectl get applications -n argocd || true
 sudo -iu ubuntu kubectl get all -n demo || true
 sudo -iu ubuntu kubectl get all -n monitoring || true
-sudo -iu ubuntu kubectl logs deployment/web -n demo || true
+sudo -iu ubuntu kubectl logs -n demo -l app.kubernetes.io/name=web --all-containers=true || true
 exit 1
