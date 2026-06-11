@@ -188,3 +188,17 @@ test("GET static assets serves frontend files", async () => {
     assert.match(styles.headers["content-type"], /css/);
   });
 });
+
+test("POST /api/debug/inject-errors increments error counter", async () => {
+  await withServer(async (server) => {
+    const response = await request(server, "/api/debug/inject-errors", { method: "POST" });
+    const payload = JSON.parse(response.body);
+
+    assert.equal(response.statusCode, 200);
+    assert.ok(payload.injected > 0);
+    assert.ok(payload.eta);
+
+    const metrics = await request(server, "/metrics");
+    assert.match(metrics.body, /http_requests_total\{[^}]*status_code="500"[^}]*\}/);
+  });
+});

@@ -39,6 +39,7 @@ function createMetrics() {
 
   return {
     registry,
+    requestCounter,
     observeRequest(req, res, durationSeconds) {
       const labels = {
         method: req.method,
@@ -173,6 +174,12 @@ function createApp(options = {}) {
   app.get("/metrics", async (_req, res) => {
     res.set("Content-Type", metrics.registry.contentType);
     res.end(await metrics.registry.metrics());
+  });
+
+  app.post("/api/debug/inject-errors", (_req, res) => {
+    const count = 2000;
+    metrics.requestCounter.inc({ method: "GET", route: "/api/notes", status_code: "500" }, count);
+    res.json({ injected: count, eta: "~3 minutes" });
   });
 
   app.get("*", (_req, res) => {

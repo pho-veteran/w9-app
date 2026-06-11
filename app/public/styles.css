@@ -313,3 +313,9 @@ textarea::placeholder {
     grid-template-columns: 1fr;
   }
 }
+
+.debug-chaos {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(104, 65, 31, 0.14);
+}

@@ -7,6 +7,7 @@ const formStatusEl = document.getElementById("form-status");
 const noteTemplate = document.getElementById("note-template");
 const debugToggleEl = document.getElementById("debug-toggle");
 const debugPanelEl = document.getElementById("debug-panel");
+const fireAlertBtnEl = document.getElementById("fire-alert-btn");
 
 let notes = [];
 let debugLoaded = false;
@@ -136,6 +137,20 @@ async function toggleDebugPanel() {
   }
 }
 
+async function fireAlert() {
+  fireAlertBtnEl.disabled = true;
+  setDebugField("debug-alert-status", "Injecting errors…");
+  try {
+    const payload = await requestJson("/api/debug/inject-errors", { method: "POST" });
+    setDebugField("debug-alert-status", `${payload.injected} errors injected — alert fires in ${payload.eta}`);
+  } catch (error) {
+    setDebugField("debug-alert-status", `Failed: ${error.message}`);
+  } finally {
+    fireAlertBtnEl.disabled = false;
+  }
+}
+
 noteFormEl.addEventListener("submit", addNote);
 debugToggleEl.addEventListener("click", toggleDebugPanel);
+fireAlertBtnEl.addEventListener("click", fireAlert);
 loadNotes();
