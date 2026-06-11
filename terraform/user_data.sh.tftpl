@@ -80,6 +80,8 @@ sudo -iu ubuntu minikube start --force --driver=docker --listen-address=0.0.0.0 
 # Cài ArgoCD và đợi control plane sẵn sàng.
 sudo -iu ubuntu kubectl create namespace argocd --dry-run=client -o yaml | sudo -iu ubuntu kubectl apply -f -
 sudo -iu ubuntu kubectl -n argocd apply --server-side -f "$${ARGOCD_INSTALL_URL}"
+sudo -iu ubuntu kubectl -n argocd patch configmap argocd-cmd-params-cm --type merge -p '{"data":{"server.insecure":"true"}}'
+sudo -iu ubuntu kubectl -n argocd rollout restart deployment/argocd-server
 sudo -iu ubuntu kubectl wait --for=condition=Established crd/applications.argoproj.io --timeout=120s
 sudo -iu ubuntu kubectl wait --for=condition=Established crd/appprojects.argoproj.io --timeout=120s
 sudo -iu ubuntu kubectl -n argocd rollout status deployment/argocd-server --timeout=300s
