@@ -22,6 +22,7 @@ GRAFANA_PORT_FORWARD_SERVICE="/etc/systemd/system/grafana-port-forward.service"
 PROMETHEUS_PORT_FORWARD_SERVICE="/etc/systemd/system/prometheus-port-forward.service"
 ARGOCD_INSTALL_URL="https://raw.githubusercontent.com/argoproj/argo-cd/v2.14.9/manifests/install.yaml"
 ARGOCD_CLI_URL="https://github.com/argoproj/argo-cd/releases/download/v2.14.9/argocd-linux-amd64"
+ARGO_ROLLOUTS_CLI_URL="https://github.com/argoproj/argo-rollouts/releases/download/v1.8.3/kubectl-argo-rollouts-linux-amd64"
 REPO_URL="${gitops_repo_url}"
 ROOT_APP_PATH="$${REPO_DIR}/apps/root.yaml"
 
@@ -67,6 +68,10 @@ chmod +x /usr/local/bin/minikube
 # Cài ArgoCD CLI để tiện debug/sync trong lab.
 curl -fsSLo /usr/local/bin/argocd "$${ARGOCD_CLI_URL}"
 chmod +x /usr/local/bin/argocd
+
+# Cài Argo Rollouts kubectl plugin để theo dõi rollout dễ hơn trong lab.
+curl -fsSLo /usr/local/bin/kubectl-argo-rollouts "$${ARGO_ROLLOUTS_CLI_URL}"
+chmod +x /usr/local/bin/kubectl-argo-rollouts
 
 # Clone GitOps repo để bootstrap root Application.
 rm -rf "$${REPO_DIR}"
